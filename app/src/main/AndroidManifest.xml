@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.inventario.diso">
+
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/logodiso"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/logodiso"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity android:name=".view.ui.activities.ActivityTow"></activity>
+        <activity android:name=".view.ui.activities.ActivityOne" android:configChanges="orientation|screenSize|keyboardHidden"/>
+
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDTrx7yhhIMs7dNbqTHzRmWq8hijE3Fkrw" />
+
+        <activity android:name=".view.ui.activities.SplashscreenActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".view.ui.activities.MainActivity" />
+    </application>
+
+</manifest>
