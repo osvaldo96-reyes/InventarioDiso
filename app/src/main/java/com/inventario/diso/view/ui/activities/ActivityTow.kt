@@ -47,44 +47,13 @@ class ActivityTow : AppCompatActivity(){
             false
         }
 
-        //Metodos
 
-        webService()
 
 
     }
 
-    fun webService() {
-        val idbienedittxt = findViewById<TextView>(R.id.txtE_IdBien)
-        val inventarioedittxt = findViewById<TextView>(R.id.txtE_Inventario)
 
-        val queue = Volley.newRequestQueue(this)
-        val url = "http://192.168.1.70:8888/webservices/ejemplo.php"
-
-        val data = "Idbien=" + URLEncoder.encode("5651000300000043-1", "UTF-8")
-
-
-        val stringRequest = StringRequest(Request.Method.POST,url, Response.Listener { response ->
-            val jsonArray = JSONArray(response)
-            for(i in 0 until jsonArray.length()){
-                val jsonObject = JSONObject(jsonArray.getString(i))
-                var idbien = jsonObject.get("idbien")
-                var codinv = jsonObject.get("codinv")
-
-
-
-                idbienedittxt.text = idbien.toString()
-                inventarioedittxt.text = codinv.toString()
-
-                //Toast.makeText(applicationContext,text.toString(), Toast.LENGTH_LONG).show()
-            }
-        },
-            Response.ErrorListener {
-                idbienedittxt!!.text = "That didn't work!" })
-
-        queue.add(stringRequest)
     }
 
 
 
-}

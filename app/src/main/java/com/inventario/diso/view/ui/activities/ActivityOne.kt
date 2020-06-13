@@ -58,8 +58,9 @@ class ActivityOne : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_one)
-
         ocultarItems ()
+
+       //Menu
 
         val title = findViewById<View>(R.id.activityTitle1) as TextView
         title.text = "Escanear"
@@ -102,17 +103,17 @@ class ActivityOne : AppCompatActivity() {
 
 
     fun webService(idScanner: String){
-
+        Toast.makeText(this, "Resultado: " + idScanner, Toast.LENGTH_LONG).show()
+        mostrarItems()
 
         val idbienedittxt = findViewById<TextView>(R.id.txtE_IdBien)
         val inventarioedittxt = findViewById<TextView>(R.id.txtE_Inventario)
-        val queue = Volley.newRequestQueue(this)
-        val url = "http://192.168.1.70:8888/webservices/ejemplo.php"
 
-        val data = "Idbien=" + URLEncoder.encode(idScanner, "UTF-8")
+        val queue = Volley.newRequestQueue(this)
+        val url = "http://192.168.1.70:8888/webservices/ejemplo.php?idbien="+idScanner
 
         val stringRequest = StringRequest(
-            Request.Method.POST,url, Response.Listener { response ->
+            Request.Method.GET,url, Response.Listener{ response ->
             val jsonArray = JSONArray(response)
             for(i in 0 until jsonArray.length()){
                 val jsonObject = JSONObject(jsonArray.getString(i))
@@ -154,12 +155,15 @@ class ActivityOne : AppCompatActivity() {
                 ocultarItems ()
             } else {
                 Toast.makeText(this, "Resultado: " + result.contents, Toast.LENGTH_LONG).show()
-                txtE_IdBien.setText(result.contents)
+                txtE_Inventario.setText(result.contents)
                 webService(result.contents)
 
-                mostrarItems()
+                if (result.contents ==""){
 
 
+
+
+                }
 
 
 
