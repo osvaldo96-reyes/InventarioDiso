@@ -1,15 +1,25 @@
 package com.inventario.diso.view.ui.activities
 
+import android.app.DownloadManager
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.android.volley.Request
+import com.android.volley.Response
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.Volley
+
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.zxing.integration.android.IntentIntegrator
 import com.inventario.diso.R
 import kotlinx.android.synthetic.main.activity_one.*
+import org.json.JSONArray
+import org.json.JSONObject
+import java.net.URLEncoder
 import kotlin.properties.Delegates
 
 class ActivityOne : AppCompatActivity() {
@@ -72,6 +82,10 @@ class ActivityOne : AppCompatActivity() {
         }
 
 
+
+
+
+
         //BARDCODE
 
         floting.setOnClickListener {
@@ -80,11 +94,52 @@ class ActivityOne : AppCompatActivity() {
             scanner.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE)
             scanner.setBeepEnabled(false)
 
+
+
+
         }
     }
 
 
+    fun webService(idScanner: String){
+
+
+        val idbienedittxt = findViewById<TextView>(R.id.txtE_IdBien)
+        val inventarioedittxt = findViewById<TextView>(R.id.txtE_Inventario)
+        val queue = Volley.newRequestQueue(this)
+        val url = "http://192.168.1.70:8888/webservices/ejemplo.php"
+
+        val data = "Idbien=" + URLEncoder.encode(idScanner, "UTF-8")
+
+        val stringRequest = StringRequest(
+            Request.Method.POST,url, Response.Listener { response ->
+            val jsonArray = JSONArray(response)
+            for(i in 0 until jsonArray.length()){
+                val jsonObject = JSONObject(jsonArray.getString(i))
+                var idbien = jsonObject.get("idbien")
+                var codinv = jsonObject.get("codinv")
+
+
+
+                idbienedittxt.text = idbien.toString()
+                inventarioedittxt.text = codinv.toString()
+
+                //Toast.makeText(applicationContext,text.toString(), Toast.LENGTH_LONG).show()
+            }
+        },
+            Response.ErrorListener {
+                idbienedittxt!!.text = "That didn't work!" })
+
+        queue.add(stringRequest)
+    }
+
+
+
+
+
     //ACTION BARDCODE
+
+
 
     override fun onActivityResult(
         requestCode: Int,
@@ -100,15 +155,12 @@ class ActivityOne : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "Resultado: " + result.contents, Toast.LENGTH_LONG).show()
                 txtE_IdBien.setText(result.contents)
-                if (result.contents=="4005900342263"){
+                webService(result.contents)
 
-                    mostrarItems ()
+                mostrarItems()
 
-                }else{
-                    Toast.makeText(this, "No hay no existe", Toast.LENGTH_LONG).show()
-                    ocultarItems ()
 
-                }
+
 
 
             }
@@ -116,6 +168,9 @@ class ActivityOne : AppCompatActivity() {
             super.onActivityResult(requestCode, resultCode, data)
         }
     }
+
+
+
 
 
     //Funcion mostrar formulario
