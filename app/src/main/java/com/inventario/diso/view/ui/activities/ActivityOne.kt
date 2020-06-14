@@ -24,35 +24,6 @@ import kotlin.properties.Delegates
 
 class ActivityOne : AppCompatActivity() {
 
-    //private lateinit var progressBar: ProgressDialog
-
-    private var txtEIdBien by Delegates.notNull<String>()
-    private var txtEInventario by Delegates.notNull<String>()
-    private var txtESerie by Delegates.notNull<String>()
-    private var txtEContrato by Delegates.notNull<String>()
-    private var txtEMarca by Delegates.notNull<String>()
-    private var txtEModelo by Delegates.notNull<String>()
-    private var txtERes by Delegates.notNull<String>()
-    private var txtEMateria by Delegates.notNull<String>()
-    private var txtEGarantia by Delegates.notNull<String>()
-    private var txtEEquip by Delegates.notNull<String>()
-    private var txtEAdquisicion by Delegates.notNull<String>()
-    private var txtEVigencia by Delegates.notNull<String>()
-    private var txtEFolio by Delegates.notNull<String>()
-    private var txtEFecRes by Delegates.notNull<String>()
-    private var txtEEstatus by Delegates.notNull<String>()
-    private var txtEFecReg by Delegates.notNull<String>()
-    private var txtEUsReg by Delegates.notNull<String>()
-    private var btG by Delegates.notNull<String>()
-    private var txtEInmueble by Delegates.notNull<String>()
-    private var btF by Delegates.notNull<String>()
-    private var btP by Delegates.notNull<String>()
-    private var btI by Delegates.notNull<String>()
-    private var btS by Delegates.notNull<String>()
-    private var txtEPiso by Delegates.notNull<String>()
-    private var txtEUbicacion by Delegates.notNull<String>()
-
-
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -82,11 +53,6 @@ class ActivityOne : AppCompatActivity() {
             false
         }
 
-
-
-
-
-
         //BARDCODE
 
         floting.setOnClickListener {
@@ -95,19 +61,17 @@ class ActivityOne : AppCompatActivity() {
             scanner.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE)
             scanner.setBeepEnabled(false)
 
-
-
-
         }
     }
 
-
     fun webService(idScanner: String){
-        Toast.makeText(this, "Resultado: " + idScanner, Toast.LENGTH_LONG).show()
+        //Toast.makeText(this, "Resultado: " + idScanner, Toast.LENGTH_LONG).show()
         mostrarItems()
 
         val idbienedittxt = findViewById<TextView>(R.id.txtE_IdBien)
         val inventarioedittxt = findViewById<TextView>(R.id.txtE_Inventario)
+        val inedittxt = findViewById<TextView>(R.id.txtE_In)
+
 
         val queue = Volley.newRequestQueue(this)
         val url = "http://192.168.1.70:8888/webservices/ejemplo.php?idbien="+idScanner
@@ -119,11 +83,13 @@ class ActivityOne : AppCompatActivity() {
                 val jsonObject = JSONObject(jsonArray.getString(i))
                 var idbien = jsonObject.get("idbien")
                 var codinv = jsonObject.get("codinv")
+                var inm = jsonObject.get("nominmueble")
 
 
 
                 idbienedittxt.text = idbien.toString()
                 inventarioedittxt.text = codinv.toString()
+                inedittxt.text = inm.toString()
 
                 //Toast.makeText(applicationContext,text.toString(), Toast.LENGTH_LONG).show()
             }
