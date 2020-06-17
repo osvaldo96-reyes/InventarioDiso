@@ -1,29 +1,21 @@
 package com.inventario.diso.view.ui.activities
 
-import android.app.DownloadManager
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.widget.EditText
-
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.get
 import com.android.volley.Request
 import com.android.volley.Response
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
-
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.zxing.integration.android.IntentIntegrator
 import com.inventario.diso.R
 import kotlinx.android.synthetic.main.activity_one.*
 import org.json.JSONArray
-import org.json.JSONException
 import org.json.JSONObject
-import java.lang.reflect.InvocationTargetException
-import java.net.URLEncoder
-import kotlin.properties.Delegates
 
 class ActivityOne : AppCompatActivity() {
 
@@ -32,7 +24,7 @@ class ActivityOne : AppCompatActivity() {
     lateinit var inmuebleedittxt : EditText
     lateinit var nommateriaedittxt : EditText
     lateinit var marcaedittxt : EditText
-    lateinit var nompisoedittxt : EditText
+    lateinit var nompisoedittxt : Spinner
     lateinit var equipoedittxt : EditText
     lateinit var nomubicacionedittxt : EditText
     lateinit var  modeloedittxt : EditText
@@ -54,8 +46,6 @@ class ActivityOne : AppCompatActivity() {
     lateinit var  nombresedittxt : EditText
     lateinit var codinmuebleedittxt : EditText
 
-
-
     lateinit var idbien : Any
     lateinit var codinv  : Any
     lateinit var inmueble  : Any
@@ -73,6 +63,11 @@ class ActivityOne : AppCompatActivity() {
     lateinit var foliores: Any
     lateinit var fechres:  Any
     lateinit var estatus: Any
+
+    val arrayListp = ArrayList<String>()
+
+
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -116,80 +111,145 @@ class ActivityOne : AppCompatActivity() {
     fun webService(idScanner: String){
 
 
-
-        try {
-
         mostrarItems()
         InicializarComponentes()
         val queue = Volley.newRequestQueue(this)
         val url = "http://192.168.1.69:8887/webservices/ejemplo.php?idbien="+idScanner
         val stringRequest = StringRequest(
             Request.Method.GET,url, Response.Listener{ response ->
-            val jsonArray = JSONArray(response)
 
 
-                if(jsonArray.length() != 1){
+                if (response.toString()!="null"){  // si no encuentra registro
 
 
-                }
+                    val jsonArray = JSONArray(response)
 
-                for(i in 0 until jsonArray.length()){
+                    for (i in 0 until jsonArray.length()) {
 
-                val jsonObject = JSONObject(jsonArray.getString(i))
-                idbien = jsonObject.get("idbien")
-                codinv = jsonObject.get("codinv")
-                inmueble = jsonObject.get("nominmueble")
-                materia = jsonObject.get("nommateria")
-                marca = jsonObject.get("marca")
-                //piso = jsonObject.get("nompiso")
-                equipo = jsonObject.get("marca")
-                modelo= jsonObject.get("modelo")
-                serie=jsonObject.get("serie")
-                ncontrato=jsonObject.get("ncontrato")
-                garantia=jsonObject.get("garantia")
-                fechadq=jsonObject.get("fechaadq")
-                fechavig=jsonObject.get("fechavig")
-                responsable=jsonObject.get("nombres")
-                foliores=jsonObject.get("folioresg")
-                fechres=jsonObject.get("fechafolresg")
-                estatus=jsonObject.get("estatus")
+                        val jsonObject = JSONObject(jsonArray.getString(i))
+                        idbien = jsonObject.get("idbien")
+                        codinv = jsonObject.get("codinv")
+                        inmueble = jsonObject.get("nominmueble")
+                        materia = jsonObject.get("nommateria")
+                        marca = jsonObject.get("marca")
+                        piso = jsonObject.get("nompiso")
+                        equipo = jsonObject.get("marca")
+                        modelo = jsonObject.get("modelo")
+                        serie = jsonObject.get("serie")
+                        ncontrato = jsonObject.get("ncontrato")
+                        garantia = jsonObject.get("garantia")
+                        fechadq = jsonObject.get("fechaadq")
+                        fechavig = jsonObject.get("fechavig")
+                        responsable = jsonObject.get("nombres")
+                        foliores = jsonObject.get("folioresg")
+                        fechres = jsonObject.get("fechafolresg")
+                        estatus = jsonObject.get("estatus")
 
-
-
-                idbienedittxt.setText(idbien.toString())
-                inventarioedittxt.setText(codinv.toString())
-                inmuebleedittxt.setText(inmueble.toString())
-                nommateriaedittxt.setText(materia.toString())
-                marcaedittxt.setText(marca.toString())
-                //nompisoedittxt.setText(piso.toString())
-                equipoedittxt.setText(equipo.toString())
-                modeloedittxt.setText(modelo.toString())
-                serieedittxt.setText(serie.toString())
-                garantiaedittxt.setText(garantia.toString())
-                ncontratoedittxt.setText(ncontrato.toString())
-                fechaadqedittxt.setText(fechadq.toString())
-                fechavigedittxt.setText(fechavig.toString())
-                respbienedittxt.setText(responsable.toString())
-                fechafolresgedittxt.setText(fechres.toString())
-                folioresgedittxt.setText(foliores.toString())
-                estatusedittxt.setText(estatus.toString())
+                        idbienedittxt.setText(idbien.toString())
+                        inventarioedittxt.setText(codinv.toString())
+                        inmuebleedittxt.setText(inmueble.toString())
+                        nommateriaedittxt.setText(materia.toString())
+                        marcaedittxt.setText(marca.toString())
+                        spPiso(piso.toString())
+                        equipoedittxt.setText(equipo.toString())
+                        modeloedittxt.setText(modelo.toString())
+                        serieedittxt.setText(serie.toString())
+                        garantiaedittxt.setText(garantia.toString())
+                        ncontratoedittxt.setText(ncontrato.toString())
+                        fechaadqedittxt.setText(fechadq.toString())
+                        fechavigedittxt.setText(fechavig.toString())
+                        respbienedittxt.setText(responsable.toString())
+                        fechafolresgedittxt.setText(fechres.toString())
+                        folioresgedittxt.setText(foliores.toString())
+                        estatusedittxt.setText(estatus.toString())
 
 
-                //Toast.makeText(applicationContext,text.toString(), Toast.LENGTH_LONG).show()
-            }
+                        //Toast.makeText(applicationContext,text.toString(), Toast.LENGTH_LONG).show()
+                    }
+
+                }else {
+                    limpiarCampos()
+                    ocultarItems()
+                    Toast.makeText(this, "No se encontro registro", Toast.LENGTH_LONG).show()
+                }//else validar
+
         },
             Response.ErrorListener {
                 idbienedittxt!!.setText("That didn't work!") })
 
         queue.add(stringRequest)
 
-        }catch (e: InvocationTargetException){
-            Toast.makeText(this, "No se encontro Codigo", Toast.LENGTH_LONG).show()
-            ocultarItems ()
-
-        }
 
     }//metodo web
+
+    fun spPiso(nombrePiso: String){
+        var recuperaPiso = 0
+
+        mostrarItems()
+        InicializarComponentes()
+        val queue = Volley.newRequestQueue(this)
+        val url = "http://192.168.1.69:8887/webservices/spnPiso.php"
+        val stringRequest = StringRequest(
+            Request.Method.GET,url, Response.Listener{ response ->
+                if (response.toString()!="null"){  // si no encuentra registro
+                    val jsonArray = JSONArray(response)
+                    for (i in 0 until jsonArray.length()) {
+
+                        val jsonObject = JSONObject(jsonArray.getString(i))
+
+                        piso = jsonObject.get("nompiso")
+
+                        arrayListp.add(piso.toString())
+
+                       // nompisoedittxt.setText(piso.toString())
+
+
+                    }//for
+
+                    nompisoedittxt= findViewById(R.id.spnE_Piso) as Spinner
+                    nompisoedittxt.adapter = ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,arrayListp)
+
+
+                   //ValidacionSpinner
+                    for(i in 0..arrayListp.size-1) {
+                        //println("nombre piso recupe $nombrePiso")
+                        //println("nombre del piso array "+arrayListp[i])
+
+                        if(nombrePiso==arrayListp[i]){
+                            recuperaPiso=i
+                            nompisoedittxt.setSelection(recuperaPiso);
+                            //println("recupero en el valor "+recuperaPiso)
+                        }
+                    }
+
+
+                    nompisoedittxt.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
+                        override fun onNothingSelected(parent: AdapterView<*>?) {
+                            println("Please Select an Option")
+                        }
+
+                        override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                            println(arrayListp.get(position))
+                        }
+                    }
+
+
+
+
+                }else {
+                    limpiarCampos()
+                    ocultarItems()
+                    Toast.makeText(this, "No se encontro registro", Toast.LENGTH_LONG).show()
+                }//else validar
+
+            },
+            Response.ErrorListener {
+                idbienedittxt!!.setText("That didn't work!") })
+
+        queue.add(stringRequest)
+
+
+    }
 
     fun InicializarComponentes (){
 
@@ -199,7 +259,7 @@ class ActivityOne : AppCompatActivity() {
         inmuebleedittxt = findViewById(R.id.txtE_In)
         nommateriaedittxt = findViewById(R.id.txtE_Materia)
         marcaedittxt= findViewById(R.id.txtE_Marca)
-        //nompisoedittxt= findViewById(R.id.spnE_Piso)
+        nompisoedittxt= findViewById(R.id.spnE_Piso)
         equipoedittxt= findViewById(R.id.txtE_Equipo)
         modeloedittxt= findViewById(R.id.txtE_Modelo)
         serieedittxt= findViewById(R.id.txtE_Serie)
@@ -368,6 +428,26 @@ class ActivityOne : AppCompatActivity() {
         textView91.visibility=View.GONE
         chkVer.visibility=View.GONE
         textView96.visibility=View.GONE
+    }
+
+    fun limpiarCampos(){
+        idbienedittxt.setText("")
+        inventarioedittxt.setText("")
+        inmuebleedittxt.setText("")
+        nommateriaedittxt.setText("")
+        marcaedittxt.setText("")
+        //nompisoedittxt.setText(piso.toString())
+        equipoedittxt.setText("")
+        modeloedittxt.setText("")
+        serieedittxt.setText("")
+        garantiaedittxt.setText("")
+        ncontratoedittxt.setText("")
+        fechaadqedittxt.setText("")
+        fechavigedittxt.setText("")
+        respbienedittxt.setText("")
+        fechafolresgedittxt.setText("")
+        folioresgedittxt.setText("")
+        estatusedittxt.setText("")
     }
 
     //Coclo de vida de la Actividad
