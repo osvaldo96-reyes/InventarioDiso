@@ -4,6 +4,7 @@ import android.app.DownloadManager
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.EditText
 
 import android.widget.TextView
 import android.widget.Toast
@@ -18,12 +19,60 @@ import com.google.zxing.integration.android.IntentIntegrator
 import com.inventario.diso.R
 import kotlinx.android.synthetic.main.activity_one.*
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
+import java.lang.reflect.InvocationTargetException
 import java.net.URLEncoder
 import kotlin.properties.Delegates
 
 class ActivityOne : AppCompatActivity() {
 
+    lateinit var idbienedittxt : EditText
+    lateinit var inventarioedittxt : EditText
+    lateinit var inmuebleedittxt : EditText
+    lateinit var nommateriaedittxt : EditText
+    lateinit var marcaedittxt : EditText
+    lateinit var nompisoedittxt : EditText
+    lateinit var equipoedittxt : EditText
+    lateinit var nomubicacionedittxt : EditText
+    lateinit var  modeloedittxt : EditText
+    lateinit var  serieedittxt : EditText
+    lateinit var   ncontratoedittxt : EditText
+    lateinit var  garantiaedittxt : EditText
+    lateinit var fechaadqedittxt : EditText
+    lateinit var  fechavigedittxt : EditText
+    lateinit var respbienedittxt : EditText
+    lateinit var  folioresgedittxt : EditText
+    lateinit var fecharegedittxt : EditText
+    lateinit var  estatusedittxt : EditText
+    lateinit var debajaedittxt : EditText
+    lateinit var fechafolresgedittxt : EditText
+
+
+    lateinit var  observacionedittxt : EditText
+    lateinit var nominmuebleedittxt : EditText
+    lateinit var  nombresedittxt : EditText
+    lateinit var codinmuebleedittxt : EditText
+
+
+
+    lateinit var idbien : Any
+    lateinit var codinv  : Any
+    lateinit var inmueble  : Any
+    lateinit var materia : Any
+    lateinit var marca : Any
+    lateinit var piso : Any
+    lateinit var equipo: Any
+    lateinit var modelo: Any
+    lateinit var serie: Any
+    lateinit var ncontrato: Any
+    lateinit var garantia: Any
+    lateinit var fechadq: Any
+    lateinit var fechavig: Any
+    lateinit var responsable: Any
+    lateinit var foliores: Any
+    lateinit var fechres:  Any
+    lateinit var estatus: Any
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,39 +114,109 @@ class ActivityOne : AppCompatActivity() {
     }
 
     fun webService(idScanner: String){
-        //Toast.makeText(this, "Resultado: " + idScanner, Toast.LENGTH_LONG).show()
+
+
+
+        try {
+
         mostrarItems()
-
-        val idbienedittxt = findViewById<TextView>(R.id.txtE_IdBien)
-        val inventarioedittxt = findViewById<TextView>(R.id.txtE_Inventario)
-        val inedittxt = findViewById<TextView>(R.id.txtE_In)
-
-
+        InicializarComponentes()
         val queue = Volley.newRequestQueue(this)
-        val url = "http://192.168.1.70:8888/webservices/ejemplo.php?idbien="+idScanner
-
+        val url = "http://192.168.1.69:8887/webservices/ejemplo.php?idbien="+idScanner
         val stringRequest = StringRequest(
             Request.Method.GET,url, Response.Listener{ response ->
             val jsonArray = JSONArray(response)
-            for(i in 0 until jsonArray.length()){
+
+
+                if(jsonArray.length() != 1){
+
+
+                }
+
+                for(i in 0 until jsonArray.length()){
+
                 val jsonObject = JSONObject(jsonArray.getString(i))
-                var idbien = jsonObject.get("idbien")
-                var codinv = jsonObject.get("codinv")
-                var inm = jsonObject.get("nominmueble")
+                idbien = jsonObject.get("idbien")
+                codinv = jsonObject.get("codinv")
+                inmueble = jsonObject.get("nominmueble")
+                materia = jsonObject.get("nommateria")
+                marca = jsonObject.get("marca")
+                //piso = jsonObject.get("nompiso")
+                equipo = jsonObject.get("marca")
+                modelo= jsonObject.get("modelo")
+                serie=jsonObject.get("serie")
+                ncontrato=jsonObject.get("ncontrato")
+                garantia=jsonObject.get("garantia")
+                fechadq=jsonObject.get("fechaadq")
+                fechavig=jsonObject.get("fechavig")
+                responsable=jsonObject.get("nombres")
+                foliores=jsonObject.get("folioresg")
+                fechres=jsonObject.get("fechafolresg")
+                estatus=jsonObject.get("estatus")
 
 
 
-                idbienedittxt.text = idbien.toString()
-                inventarioedittxt.text = codinv.toString()
-                inedittxt.text = inm.toString()
+                idbienedittxt.setText(idbien.toString())
+                inventarioedittxt.setText(codinv.toString())
+                inmuebleedittxt.setText(inmueble.toString())
+                nommateriaedittxt.setText(materia.toString())
+                marcaedittxt.setText(marca.toString())
+                //nompisoedittxt.setText(piso.toString())
+                equipoedittxt.setText(equipo.toString())
+                modeloedittxt.setText(modelo.toString())
+                serieedittxt.setText(serie.toString())
+                garantiaedittxt.setText(garantia.toString())
+                ncontratoedittxt.setText(ncontrato.toString())
+                fechaadqedittxt.setText(fechadq.toString())
+                fechavigedittxt.setText(fechavig.toString())
+                respbienedittxt.setText(responsable.toString())
+                fechafolresgedittxt.setText(fechres.toString())
+                folioresgedittxt.setText(foliores.toString())
+                estatusedittxt.setText(estatus.toString())
+
 
                 //Toast.makeText(applicationContext,text.toString(), Toast.LENGTH_LONG).show()
             }
         },
             Response.ErrorListener {
-                idbienedittxt!!.text = "That didn't work!" })
+                idbienedittxt!!.setText("That didn't work!") })
 
         queue.add(stringRequest)
+
+        }catch (e: InvocationTargetException){
+            Toast.makeText(this, "No se encontro Codigo", Toast.LENGTH_LONG).show()
+            ocultarItems ()
+
+        }
+
+    }//metodo web
+
+    fun InicializarComponentes (){
+
+
+        idbienedittxt = findViewById(R.id.txtE_IdBien)
+        inventarioedittxt = findViewById(R.id.txtE_Inventario)
+        inmuebleedittxt = findViewById(R.id.txtE_In)
+        nommateriaedittxt = findViewById(R.id.txtE_Materia)
+        marcaedittxt= findViewById(R.id.txtE_Marca)
+        //nompisoedittxt= findViewById(R.id.spnE_Piso)
+        equipoedittxt= findViewById(R.id.txtE_Equipo)
+        modeloedittxt= findViewById(R.id.txtE_Modelo)
+        serieedittxt= findViewById(R.id.txtE_Serie)
+        garantiaedittxt= findViewById(R.id.txtE_Garantia)
+        ncontratoedittxt=findViewById(R.id.txtE_Contrato)
+        fechaadqedittxt=findViewById(R.id.txtE_Adquisicion)
+        fechavigedittxt=findViewById(R.id.txtE_Vigencia)
+        respbienedittxt=findViewById(R.id.txtE_Responsable)
+        fechaadqedittxt=findViewById(R.id.txtE_Adquisicion)
+        fechavigedittxt=findViewById(R.id.txtE_Vigencia)
+        respbienedittxt=findViewById(R.id.txtE_Responsable)
+        fechafolresgedittxt=findViewById(R.id.txtE_FecRes)
+        folioresgedittxt=findViewById(R.id.txtE_Folio)
+        estatusedittxt=findViewById(R.id.txtE_Estatus)
+
+
+
     }
 
 
@@ -120,20 +239,16 @@ class ActivityOne : AppCompatActivity() {
                 Toast.makeText(this, "No se escaneo nada", Toast.LENGTH_LONG).show()
                 ocultarItems ()
             } else {
-                Toast.makeText(this, "Resultado: " + result.contents, Toast.LENGTH_LONG).show()
-                txtE_Inventario.setText(result.contents)
-                webService(result.contents)
-
-                if (result.contents ==""){
 
 
 
-
-                }
-
-
+                    webService(result.contents)
+                    txtE_Inventario.setText(result.contents)
 
             }
+
+
+
         } else {
             super.onActivityResult(requestCode, resultCode, data)
         }
