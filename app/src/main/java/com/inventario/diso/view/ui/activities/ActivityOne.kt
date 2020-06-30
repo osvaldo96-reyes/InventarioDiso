@@ -1,13 +1,24 @@
 package com.inventario.diso.view.ui.activities
 
+import android.app.Activity
+import android.content.ContentResolver
+import android.content.ContentValues
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
+import android.renderscript.Sampler
 import android.view.View
 import android.widget.*
+import android.widget.ImageView.ScaleType.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.get
 import com.android.volley.Request
 import com.android.volley.Response
+import com.android.volley.toolbox.ImageRequest
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -16,6 +27,7 @@ import com.inventario.diso.R
 import kotlinx.android.synthetic.main.activity_one.*
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.jar.Manifest
 
 class ActivityOne : AppCompatActivity() {
 
@@ -26,7 +38,7 @@ class ActivityOne : AppCompatActivity() {
     lateinit var marcaedittxt : EditText
     lateinit var nompisoedittxt : Spinner
     lateinit var equipoedittxt : EditText
-    lateinit var nomubicacionedittxt : EditText
+    lateinit var nomubicacionedittxt : Spinner
     lateinit var  modeloedittxt : EditText
     lateinit var  serieedittxt : EditText
     lateinit var   ncontratoedittxt : EditText
@@ -41,10 +53,6 @@ class ActivityOne : AppCompatActivity() {
     lateinit var fechafolresgedittxt : EditText
 
 
-    lateinit var  observacionedittxt : EditText
-    lateinit var nominmuebleedittxt : EditText
-    lateinit var  nombresedittxt : EditText
-    lateinit var codinmuebleedittxt : EditText
 
     lateinit var idbien : Any
     lateinit var codinv  : Any
@@ -52,6 +60,7 @@ class ActivityOne : AppCompatActivity() {
     lateinit var materia : Any
     lateinit var marca : Any
     lateinit var piso : Any
+    lateinit var ubicacion: Any
     lateinit var equipo: Any
     lateinit var modelo: Any
     lateinit var serie: Any
@@ -65,6 +74,10 @@ class ActivityOne : AppCompatActivity() {
     lateinit var estatus: Any
 
     val arrayListp = ArrayList<String>()
+    val arrayListu = ArrayList<String>()
+    private val REQUEST_CAMERA =1002
+    var foto: Uri? = null
+    var bandera = 0
 
 
 
@@ -106,6 +119,37 @@ class ActivityOne : AppCompatActivity() {
             scanner.setBeepEnabled(false)
 
         }
+
+
+        //btnCamara
+
+        btnE_Frente.setOnClickListener(){
+            //Toast.makeText(this, "No se encontro registro", Toast.LENGTH_LONG).show()
+            bandera=1
+            abreCamara_Click()
+
+
+        }
+
+        btnE_Perfil.setOnClickListener(){
+            bandera=2
+            abreCamara_Click()
+
+        }
+
+        btnE_Serie.setOnClickListener(){
+            bandera=3
+            abreCamara_Click()
+
+        }
+
+        btnE_Inven.setOnClickListener(){
+            bandera=4
+            abreCamara_Click()
+
+        }
+
+
     }
 
     fun webService(idScanner: String){
@@ -114,7 +158,7 @@ class ActivityOne : AppCompatActivity() {
         mostrarItems()
         InicializarComponentes()
         val queue = Volley.newRequestQueue(this)
-        val url = "http://192.168.1.69:8887/webservices/ejemplo.php?idbien="+idScanner
+        val url = "http://192.168.1.65:8886/webservices/ejemplo.php?idbien="+idScanner
         val stringRequest = StringRequest(
             Request.Method.GET,url, Response.Listener{ response ->
 
@@ -133,6 +177,7 @@ class ActivityOne : AppCompatActivity() {
                         materia = jsonObject.get("nommateria")
                         marca = jsonObject.get("marca")
                         piso = jsonObject.get("nompiso")
+                        ubicacion = jsonObject.get("nomubicacion")
                         equipo = jsonObject.get("marca")
                         modelo = jsonObject.get("modelo")
                         serie = jsonObject.get("serie")
@@ -151,6 +196,7 @@ class ActivityOne : AppCompatActivity() {
                         nommateriaedittxt.setText(materia.toString())
                         marcaedittxt.setText(marca.toString())
                         spPiso(piso.toString())
+                        spUbicacion(ubicacion.toString())
                         equipoedittxt.setText(equipo.toString())
                         modeloedittxt.setText(modelo.toString())
                         serieedittxt.setText(serie.toString())
@@ -162,6 +208,12 @@ class ActivityOne : AppCompatActivity() {
                         fechafolresgedittxt.setText(fechres.toString())
                         folioresgedittxt.setText(foliores.toString())
                         estatusedittxt.setText(estatus.toString())
+
+
+                        fotoFrente(idbien.toString())
+                        fotoPerfil(idbien.toString())
+                        fotoSerie(idbien.toString())
+                        fotoInventario(idbien.toString())
 
 
                         //Toast.makeText(applicationContext,text.toString(), Toast.LENGTH_LONG).show()
@@ -188,7 +240,7 @@ class ActivityOne : AppCompatActivity() {
         mostrarItems()
         InicializarComponentes()
         val queue = Volley.newRequestQueue(this)
-        val url = "http://192.168.1.69:8887/webservices/spnPiso.php"
+        val url = "http://192.168.1.65:8886/webservices/spnPiso.php"
         val stringRequest = StringRequest(
             Request.Method.GET,url, Response.Listener{ response ->
                 if (response.toString()!="null"){  // si no encuentra registro
@@ -251,6 +303,252 @@ class ActivityOne : AppCompatActivity() {
 
     }
 
+    fun spUbicacion(nomUbicacion: String){
+
+        var recuperaUbicacion = 0
+
+        mostrarItems()
+        InicializarComponentes()
+        val queue = Volley.newRequestQueue(this)
+        val url = "http://192.168.1.65:8886/webservices/spnUbicacion.php"
+        val stringRequest = StringRequest(
+            Request.Method.GET,url, Response.Listener{ response ->
+                if (response.toString()!="null"){  // si no encuentra registro
+                    val jsonArray = JSONArray(response)
+                    for (i in 0 until jsonArray.length()) {
+
+                        val jsonObject = JSONObject(jsonArray.getString(i))
+
+                        ubicacion = jsonObject.get("nomubicacion")
+
+                        arrayListu.add(ubicacion.toString())
+
+                        // nompisoedittxt.setText(piso.toString())
+
+
+                    }//for
+
+                    nomubicacionedittxt= findViewById(R.id.spnE_Ubicacion) as Spinner
+                    nomubicacionedittxt.adapter = ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,arrayListu)
+
+
+                    //ValidacionSpinner
+                    for(i in 0..arrayListu.size-1) {
+                        //println("nombre piso recupe $nombrePiso")
+                        //println("nombre del piso array "+arrayListp[i])
+
+                        if(nomUbicacion==arrayListu[i]){
+                            recuperaUbicacion=i
+                            nomubicacionedittxt.setSelection(recuperaUbicacion);
+                            //println("recupero en el valor "+recuperaPiso)
+                        }
+                    }
+
+
+                    nomubicacionedittxt.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
+                        override fun onNothingSelected(parent: AdapterView<*>?) {
+                            println("Please Select an Option")
+                        }
+
+                        override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                            println(arrayListu.get(position))
+                        }
+                    }
+
+
+
+
+                }else {
+                    limpiarCampos()
+                    ocultarItems()
+                    Toast.makeText(this, "No se encontro registro", Toast.LENGTH_LONG).show()
+                }//else validar
+
+            },
+            Response.ErrorListener {
+                idbienedittxt!!.setText("That didn't work!") })
+
+        queue.add(stringRequest)
+
+
+
+
+    }
+
+
+    //camara
+
+    private fun abreCamara_Click(){
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_DENIED
+                || checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
+                //Pedirle permisos al usuario
+                val permisosCamare = arrayOf(
+                    android.Manifest.permission.CAMERA,
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                )
+                requestPermissions(permisosCamare, REQUEST_CAMERA)
+                Toast.makeText(applicationContext,"entro aquiiiii",Toast.LENGTH_SHORT).show()
+
+
+            } else {
+                Toast.makeText(applicationContext,"entro en el primero",Toast.LENGTH_SHORT).show()
+
+                abreCamara()
+            }
+
+        }else {
+            Toast.makeText(applicationContext,"entro en elsegundo",Toast.LENGTH_SHORT).show()
+            abreCamara()
+        }
+
+    }
+
+
+    //ABRE LA CAMARA TELEFONO
+    private fun abreCamara(){
+        val value = ContentValues()
+        value.put(MediaStore.Images.Media.TITLE, "NUEVA IMAGEN")
+        foto = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,value)
+        val camaraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        camaraIntent.putExtra(MediaStore.EXTRA_OUTPUT,foto)
+        startActivityForResult(camaraIntent,REQUEST_CAMERA)
+    }
+
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when(requestCode){
+            REQUEST_CAMERA ->{
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                    abreCamara()
+                else
+                    Toast.makeText(applicationContext, "No puedes acceder a la camara", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+//webservice Fotos
+
+    private fun fotoFrente(idbien: String){
+       imgEFrente.setImageResource(R.drawable.imgnodisponible)
+
+       val queue = Volley.newRequestQueue(this)
+       val urlFrente = "http://192.168.1.65:8886/inventario/fotos/frente/"+idbien+".jpg"
+
+       //println("mensajeeeeeee"+urlFrente)
+
+        val imageRequest = ImageRequest(
+            urlFrente,Response.Listener<Bitmap> {
+                imgEFrente.setImageBitmap(it)
+
+            },
+             imgEFrente.layoutParams.width, imgEFrente.layoutParams.width,
+            CENTER_CROP,
+            Bitmap.Config.ARGB_8888,
+            Response.ErrorListener {
+
+                Toast.makeText(applicationContext,"No se cargo la imagen",Toast.LENGTH_SHORT).show()
+            }
+
+
+        )
+
+        queue.add(imageRequest)
+
+    }
+
+    private fun fotoPerfil(idbien: String){
+        imgEPerfil.setImageResource(R.drawable.imgnodisponible)
+
+        val queue = Volley.newRequestQueue(this)
+        val urlPerfil = "http://192.168.1.65:8886/inventario/fotos/perfil/"+idbien+".jpg"
+
+        //println("mensajeeeeeee"+urlFrente)
+
+        val imageRequest = ImageRequest(
+            urlPerfil,Response.Listener<Bitmap> {
+                imgEPerfil.setImageBitmap(it)
+
+            },
+            imgEPerfil.layoutParams.width, imgEPerfil.layoutParams.width,
+            CENTER_CROP,
+            Bitmap.Config.ARGB_8888,
+            Response.ErrorListener {
+
+                Toast.makeText(applicationContext,"No se cargo la imagen",Toast.LENGTH_SHORT).show()
+            }
+
+
+        )
+
+        queue.add(imageRequest)
+
+    }
+
+    private fun fotoSerie(idbien: String){
+        imgESerie.setImageResource(R.drawable.imgnodisponible)
+
+        val queue = Volley.newRequestQueue(this)
+        val urlSerie = "http://192.168.1.65:8886/inventario/fotos/serie/"+idbien+".jpg"
+
+        //println("mensajeeeeeee"+urlFrente)
+
+        val imageRequest = ImageRequest(
+            urlSerie,Response.Listener<Bitmap> {
+                imgESerie.setImageBitmap(it)
+
+            },
+            imgESerie.layoutParams.width, imgESerie.layoutParams.width,
+            CENTER_CROP,
+            Bitmap.Config.ARGB_8888,
+            Response.ErrorListener {
+
+                Toast.makeText(applicationContext,"No se cargo la imagen",Toast.LENGTH_SHORT).show()
+            }
+
+
+        )
+
+        queue.add(imageRequest)
+
+    }
+
+    private fun fotoInventario(idbien: String){
+        imgEInven.setImageResource(R.drawable.imgnodisponible)
+
+        val queue = Volley.newRequestQueue(this)
+        val urlInven = "http://192.168.1.65:8886/inventario/fotos/inventario/"+idbien+".jpg"
+
+        //println("mensajeeeeeee"+urlFrente)
+
+        val imageRequest = ImageRequest(
+            urlInven,Response.Listener<Bitmap> {
+                imgEInven.setImageBitmap(it)
+
+            },
+            imgEInven.layoutParams.width, imgEInven.layoutParams.width,
+            CENTER_CROP,
+            Bitmap.Config.ARGB_8888,
+            Response.ErrorListener {
+
+                Toast.makeText(applicationContext,"No se cargo la imagen",Toast.LENGTH_SHORT).show()
+            }
+
+
+        )
+
+        queue.add(imageRequest)
+
+    }
+
+
+
     fun InicializarComponentes (){
 
 
@@ -260,6 +558,7 @@ class ActivityOne : AppCompatActivity() {
         nommateriaedittxt = findViewById(R.id.txtE_Materia)
         marcaedittxt= findViewById(R.id.txtE_Marca)
         nompisoedittxt= findViewById(R.id.spnE_Piso)
+        nomubicacionedittxt= findViewById(R.id.spnE_Ubicacion)
         equipoedittxt= findViewById(R.id.txtE_Equipo)
         modeloedittxt= findViewById(R.id.txtE_Modelo)
         serieedittxt= findViewById(R.id.txtE_Serie)
@@ -300,18 +599,41 @@ class ActivityOne : AppCompatActivity() {
                 ocultarItems ()
             } else {
 
-
-
                     webService(result.contents)
                     txtE_Inventario.setText(result.contents)
+            }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data)
+        }
+        if(resultCode == Activity.RESULT_OK && requestCode == REQUEST_CAMERA){
+            //Toast.makeText(this, "SI ENTRO A LA IMAGEN", Toast.LENGTH_LONG).show()
+            imgEFrente.clearColorFilter()
+            imgEFrente.clearAnimation()
+            imgEFrente.clearFocus()
+
+            if (bandera==1){
+
+                imgEFrente.setImageURI(foto)
+
+            }else if(bandera==2){
+
+                imgEPerfil.setImageURI(foto)
+
+            } else if(bandera==3){
+
+                imgESerie.setImageURI(foto)
+
+            }else if(bandera==4){
+
+                imgEInven.setImageURI(foto)
 
             }
 
 
 
-        } else {
-            super.onActivityResult(requestCode, resultCode, data)
+
         }
+
     }
 
 
@@ -370,6 +692,10 @@ class ActivityOne : AppCompatActivity() {
         textView91.visibility=View.VISIBLE
         chkVer.visibility=View.VISIBLE
         textView96.visibility=View.VISIBLE
+        imgEFrente.visibility=View.VISIBLE
+        imgESerie.visibility=View.VISIBLE
+        imgEPerfil.visibility=View.VISIBLE
+        imgEInven.visibility=View.VISIBLE
 
 
 
@@ -428,6 +754,11 @@ class ActivityOne : AppCompatActivity() {
         textView91.visibility=View.GONE
         chkVer.visibility=View.GONE
         textView96.visibility=View.GONE
+        imgEFrente.visibility=View.GONE
+        imgEInven.visibility=View.GONE
+        imgEPerfil.visibility=View.GONE
+        imgESerie.visibility=View.GONE
+
     }
 
     fun limpiarCampos(){

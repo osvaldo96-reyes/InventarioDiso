@@ -447,7 +447,8 @@
                         android:layout_marginTop="5dp"
                         android:tag="0"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/btnE_Frente" />
+                        app:layout_constraintTop_toBottomOf="@+id/btnE_Frente"
+                        android:src="@drawable/imgnodisponible"/>
 
                     <ImageView
                         android:id="@+id/imgEPerfil"
@@ -460,7 +461,8 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintHorizontal_bias="0.708"
                         app:layout_constraintStart_toEndOf="@+id/imgEFrente"
-                        app:layout_constraintTop_toBottomOf="@+id/btnE_Perfil" />
+                        app:layout_constraintTop_toBottomOf="@+id/btnE_Perfil"
+                        android:src="@drawable/imgnodisponible"/>
 
                     <ImageView
                         android:id="@+id/imgESerie"
@@ -470,7 +472,8 @@
                         android:layout_marginTop="5dp"
                         android:tag="0"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/btnE_Serie" />
+                        app:layout_constraintTop_toBottomOf="@+id/btnE_Serie"
+                        android:src="@drawable/imgnodisponible"/>
 
                     <ImageView
                         android:id="@+id/imgEInven"
@@ -483,7 +486,8 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintHorizontal_bias="0.708"
                         app:layout_constraintStart_toEndOf="@+id/imgESerie"
-                        app:layout_constraintTop_toBottomOf="@+id/btnE_Inven" />
+                        app:layout_constraintTop_toBottomOf="@+id/btnE_Inven"
+                        android:src="@drawable/imgnodisponible"/>
 
                     <TextView
                         android:id="@+id/textView90"
