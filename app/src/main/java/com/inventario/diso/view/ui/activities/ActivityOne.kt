@@ -1,35 +1,41 @@
 package com.inventario.diso.view.ui.activities
 
 import android.app.Activity
-import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.Matrix
+import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import android.renderscript.Sampler
+import android.text.TextUtils
 import android.view.View
 import android.widget.*
-import android.widget.ImageView.ScaleType.*
+import android.widget.ImageView.ScaleType.CENTER_CROP
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.get
 import com.android.volley.Request
 import com.android.volley.Response
 import com.android.volley.toolbox.ImageRequest
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
+import com.bumptech.glide.Glide
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.zxing.integration.android.IntentIntegrator
 import com.inventario.diso.R
 import kotlinx.android.synthetic.main.activity_one.*
 import org.json.JSONArray
 import org.json.JSONObject
-import java.util.jar.Manifest
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.ArrayList
 
-class ActivityOne : AppCompatActivity() {
+import com.bumptech.glide.annotation.GlideModule;
+import com.bumptech.glide.module.AppGlideModule;
+
+class ActivityOne : AppCompatActivity(), View.OnClickListener {
 
     lateinit var idbienedittxt : EditText
     lateinit var inventarioedittxt : EditText
@@ -51,6 +57,8 @@ class ActivityOne : AppCompatActivity() {
     lateinit var  estatusedittxt : EditText
     lateinit var debajaedittxt : EditText
     lateinit var fechafolresgedittxt : EditText
+    lateinit var verificarcheck : CheckBox
+    lateinit var usRegedittxt : EditText
 
 
 
@@ -72,13 +80,23 @@ class ActivityOne : AppCompatActivity() {
     lateinit var foliores: Any
     lateinit var fechres:  Any
     lateinit var estatus: Any
+    lateinit var estatus2: Any
+    lateinit var user: Any
+    lateinit var verificar: Any
+    lateinit var fecha: Any
+
+
 
     val arrayListp = ArrayList<String>()
     val arrayListu = ArrayList<String>()
     private val REQUEST_CAMERA =1002
     var foto: Uri? = null
     var bandera = 0
+    //variables fecha
+    var sdf= SimpleDateFormat()
+    var currentDate= ""
 
+    var bitmap: Bitmap? = null
 
 
 
@@ -88,7 +106,7 @@ class ActivityOne : AppCompatActivity() {
         setContentView(R.layout.activity_one)
         ocultarItems ()
 
-       //Menu
+        //Menu
 
         val title = findViewById<View>(R.id.activityTitle1) as TextView
         title.text = "Escanear"
@@ -149,16 +167,46 @@ class ActivityOne : AppCompatActivity() {
 
         }
 
+        chkVer.setOnClickListener(){
+            if (verificarcheck.isChecked) {
+                Toast.makeText(applicationContext,"se marco ", Toast.LENGTH_LONG).show()
+
+             if (!TextUtils.isEmpty(idbienedittxt.text) && !TextUtils.isEmpty(inventarioedittxt.text) ){
+
+
+                 if (imgEFrente.tag == 0){
+                     Toast.makeText(applicationContext,"Seleccione imagen de Frente", Toast.LENGTH_LONG).show()
+                     verificarcheck.setChecked(false)
+                 }else if (imgEPerfil.tag ==0){
+                     Toast.makeText(applicationContext,"Seleccione imagen de Perfil", Toast.LENGTH_LONG).show()
+                 }else if(imgESerie.tag==0){
+                     Toast.makeText(applicationContext,"Seleccione imagen de Serie", Toast.LENGTH_LONG).show()
+                 }else if (imgEInven.tag==0){
+                     Toast.makeText(applicationContext,"Seleccione imagen de Inventario", Toast.LENGTH_LONG).show()
+                 }else{
+                     Toast.makeText(applicationContext,"va a entrar cuandooo se valide todo", Toast.LENGTH_LONG).show()
+                     println("Mandaarrr "+nompisoedittxt.selectedItem.toString())
+                 }
+
+
+             }else{
+                 println("estan vacios los campos")
+
+             }//campos vacios
+
+
+            }//check
+        }//onClick
+
 
     }
 
     fun webService(idScanner: String){
 
-
         mostrarItems()
         InicializarComponentes()
         val queue = Volley.newRequestQueue(this)
-        val url = "http://192.168.1.65:8886/webservices/ejemplo.php?idbien="+idScanner
+        val url = "http://192.168.1.63:8886/webservices/ejemplo.php?idbien="+idScanner
         val stringRequest = StringRequest(
             Request.Method.GET,url, Response.Listener{ response ->
 
@@ -209,11 +257,22 @@ class ActivityOne : AppCompatActivity() {
                         folioresgedittxt.setText(foliores.toString())
                         estatusedittxt.setText(estatus.toString())
 
+                        //mandar fecha
+                        sdf = SimpleDateFormat("yyyy-MM-dd")
+                        currentDate = sdf.format(Date())
+
+                        fecharegedittxt.setText(currentDate)
+                        println(currentDate)
+
+
 
                         fotoFrente(idbien.toString())
                         fotoPerfil(idbien.toString())
                         fotoSerie(idbien.toString())
                         fotoInventario(idbien.toString())
+
+
+
 
 
                         //Toast.makeText(applicationContext,text.toString(), Toast.LENGTH_LONG).show()
@@ -240,7 +299,7 @@ class ActivityOne : AppCompatActivity() {
         mostrarItems()
         InicializarComponentes()
         val queue = Volley.newRequestQueue(this)
-        val url = "http://192.168.1.65:8886/webservices/spnPiso.php"
+        val url = "http://192.168.1.63:8886/webservices/spnPiso.php"
         val stringRequest = StringRequest(
             Request.Method.GET,url, Response.Listener{ response ->
                 if (response.toString()!="null"){  // si no encuentra registro
@@ -281,6 +340,7 @@ class ActivityOne : AppCompatActivity() {
                         }
 
                         override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+
                             println(arrayListp.get(position))
                         }
                     }
@@ -306,11 +366,10 @@ class ActivityOne : AppCompatActivity() {
     fun spUbicacion(nomUbicacion: String){
 
         var recuperaUbicacion = 0
-
         mostrarItems()
         InicializarComponentes()
         val queue = Volley.newRequestQueue(this)
-        val url = "http://192.168.1.65:8886/webservices/spnUbicacion.php"
+        val url = "http://192.168.1.63:8886/webservices/spnUbicacion.php"
         val stringRequest = StringRequest(
             Request.Method.GET,url, Response.Listener{ response ->
                 if (response.toString()!="null"){  // si no encuentra registro
@@ -411,6 +470,9 @@ class ActivityOne : AppCompatActivity() {
         val value = ContentValues()
         value.put(MediaStore.Images.Media.TITLE, "NUEVA IMAGEN")
         foto = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,value)
+
+
+
         val camaraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         camaraIntent.putExtra(MediaStore.EXTRA_OUTPUT,foto)
         startActivityForResult(camaraIntent,REQUEST_CAMERA)
@@ -439,14 +501,16 @@ class ActivityOne : AppCompatActivity() {
        imgEFrente.setImageResource(R.drawable.imgnodisponible)
 
        val queue = Volley.newRequestQueue(this)
-       val urlFrente = "http://192.168.1.65:8886/inventario/fotos/frente/"+idbien+".jpg"
+       val urlFrente = "http://192.168.1.63:8886/inventario/fotos/frente/"+idbien+".jpg"
 
        //println("mensajeeeeeee"+urlFrente)
+
+
 
         val imageRequest = ImageRequest(
             urlFrente,Response.Listener<Bitmap> {
                 imgEFrente.setImageBitmap(it)
-
+                imgEFrente.tag = 1
             },
              imgEFrente.layoutParams.width, imgEFrente.layoutParams.width,
             CENTER_CROP,
@@ -467,14 +531,14 @@ class ActivityOne : AppCompatActivity() {
         imgEPerfil.setImageResource(R.drawable.imgnodisponible)
 
         val queue = Volley.newRequestQueue(this)
-        val urlPerfil = "http://192.168.1.65:8886/inventario/fotos/perfil/"+idbien+".jpg"
+        val urlPerfil = "http://192.168.1.63:8886/inventario/fotos/perfil/"+idbien+".jpg"
 
         //println("mensajeeeeeee"+urlFrente)
 
         val imageRequest = ImageRequest(
             urlPerfil,Response.Listener<Bitmap> {
                 imgEPerfil.setImageBitmap(it)
-
+                imgEPerfil.tag = 1
             },
             imgEPerfil.layoutParams.width, imgEPerfil.layoutParams.width,
             CENTER_CROP,
@@ -495,14 +559,14 @@ class ActivityOne : AppCompatActivity() {
         imgESerie.setImageResource(R.drawable.imgnodisponible)
 
         val queue = Volley.newRequestQueue(this)
-        val urlSerie = "http://192.168.1.65:8886/inventario/fotos/serie/"+idbien+".jpg"
+        val urlSerie = "http://192.168.1.63:8886/inventario/fotos/serie/"+idbien+".jpg"
 
         //println("mensajeeeeeee"+urlFrente)
 
         val imageRequest = ImageRequest(
             urlSerie,Response.Listener<Bitmap> {
                 imgESerie.setImageBitmap(it)
-
+                imgESerie.tag = 1
             },
             imgESerie.layoutParams.width, imgESerie.layoutParams.width,
             CENTER_CROP,
@@ -523,14 +587,14 @@ class ActivityOne : AppCompatActivity() {
         imgEInven.setImageResource(R.drawable.imgnodisponible)
 
         val queue = Volley.newRequestQueue(this)
-        val urlInven = "http://192.168.1.65:8886/inventario/fotos/inventario/"+idbien+".jpg"
+        val urlInven = "http://192.168.1.63:8886/inventario/fotos/inventario/"+idbien+".jpg"
 
         //println("mensajeeeeeee"+urlFrente)
 
         val imageRequest = ImageRequest(
             urlInven,Response.Listener<Bitmap> {
                 imgEInven.setImageBitmap(it)
-
+                imgEInven.tag = 1
             },
             imgEInven.layoutParams.width, imgEInven.layoutParams.width,
             CENTER_CROP,
@@ -545,6 +609,206 @@ class ActivityOne : AppCompatActivity() {
 
         queue.add(imageRequest)
 
+    }
+
+
+    fun cargarDatos(){
+
+        mostrarItems()
+        InicializarComponentes()
+        val queue = Volley.newRequestQueue(this)
+        val url = "http://192.168.1.63:8886/webservices/verificar.php"
+        val stringRequest = StringRequest(
+            Request.Method.GET,url, Response.Listener{ response ->
+
+
+                if (response.toString()!="null"){  // si no encuentra registro
+
+
+                    val jsonArray = JSONArray(response)
+
+                    for (i in 0 until jsonArray.length()) {
+
+                        val jsonObject = JSONObject(jsonArray.getString(i))
+                        idbien = jsonObject.get("idbien")
+                        codinv = jsonObject.get("estatus")
+                        inmueble = jsonObject.get("usuario_reg")
+                        materia = jsonObject.get("fecha")
+                        materia = jsonObject.get("piso")
+                        materia = jsonObject.get("ubicacion")
+
+
+                        idbienedittxt.setText(idbien.toString())
+                        inventarioedittxt.setText(codinv.toString())
+                        inmuebleedittxt.setText(inmueble.toString())
+                        nommateriaedittxt.setText(materia.toString())
+
+                        //Toast.makeText(applicationContext,text.toString(), Toast.LENGTH_LONG).show()
+                    }
+
+                }else {
+                    limpiarCampos()
+                    ocultarItems()
+                    Toast.makeText(this, "No se encontro registro", Toast.LENGTH_LONG).show()
+                }//else validar
+
+            },
+            Response.ErrorListener {
+                idbienedittxt!!.setText("That didn't work!") })
+
+        queue.add(stringRequest)
+
+
+    }
+
+    fun verificarcheckFun(idbien: String, inventario: String){
+
+
+
+    }
+
+
+
+
+
+
+    //ACTION BARDCODE
+
+
+
+    override fun onActivityResult(
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?
+    ) {
+        val result =
+            IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
+        if (result != null) {
+            if (result.contents == null) {
+                Toast.makeText(this, "No se escaneo nada", Toast.LENGTH_LONG).show()
+                reiniciarFotos()
+                ocultarItems ()
+            } else {
+                reiniciarFotos()
+                    webService(result.contents)
+                    txtE_Inventario.setText(result.contents)
+            }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data)
+        }
+        if(resultCode == Activity.RESULT_OK && requestCode == REQUEST_CAMERA){
+            //Toast.makeText(this, "SI ENTRO A LA IMAGEN", Toast.LENGTH_LONG).show()
+            imgEFrente.clearColorFilter()
+            imgEFrente.clearAnimation()
+            imgEFrente.clearFocus()
+
+            imgEPerfil.clearColorFilter()
+            imgEPerfil.clearAnimation()
+            imgEPerfil.clearFocus()
+
+            imgESerie.clearColorFilter()
+            imgESerie.clearAnimation()
+            imgESerie.clearFocus()
+
+            imgEInven.clearColorFilter()
+            imgEInven.clearAnimation()
+            imgEInven.clearFocus()
+
+
+            if (bandera==1){
+                imgEFrente.tag = 1
+                //imgEFrente.setImageURI(foto)
+
+                Glide.with(this)
+                    .load(foto)
+                    .into(imgEFrente)
+
+
+            }else if(bandera==2){
+                imgEPerfil.tag = 1
+                //imgEPerfil.setImageURI(foto)
+
+                Glide.with(this)
+                    .load(foto)
+                    .into(imgEPerfil)
+
+            } else if(bandera==3){
+                imgESerie.tag = 1
+                //imgESerie.setImageURI(foto)
+
+                Glide.with(this)
+                    .load(foto)
+                    .into(imgESerie)
+
+            }else if(bandera==4){
+                imgEInven.tag = 1
+                //imgEInven.setImageURI(foto)
+
+                Glide.with(this)
+                    .load(foto)
+                    .into(imgEInven)
+
+            }
+
+
+        }
+
+    }
+
+    fun resizeBitmap(source: Bitmap, maxLength: Int): Bitmap {
+        try {
+            if (source.height >= source.width) {
+                if (source.height <= maxLength) { // if image height already smaller than the required height
+                    return source
+                }
+
+                val aspectRatio = source.width.toDouble() / source.height.toDouble()
+                val targetWidth = (maxLength * aspectRatio).toInt()
+                val result = Bitmap.createScaledBitmap(source, targetWidth, maxLength, false)
+                return result
+            } else {
+                if (source.width <= maxLength) { // if image width already smaller than the required width
+                    return source
+                }
+
+                val aspectRatio = source.height.toDouble() / source.width.toDouble()
+                val targetHeight = (maxLength * aspectRatio).toInt()
+
+                val result = Bitmap.createScaledBitmap(source, maxLength, targetHeight, false)
+                return result
+            }
+        } catch (e: Exception) {
+            return source
+        }
+    }
+
+
+
+
+    private fun redimensionarImagen(
+        bitmap: Bitmap,
+        anchoNuevo: Float,
+        altoNuevo: Float
+    ): Bitmap? {
+        val ancho = bitmap.width
+        val alto = bitmap.height
+        return if (ancho > anchoNuevo || alto > altoNuevo) {
+            val escalaAncho = anchoNuevo / ancho
+            val escalaAlto = altoNuevo / alto
+            val matrix = Matrix()
+            matrix.postScale(escalaAncho, escalaAlto)
+            Bitmap.createBitmap(bitmap, 0, 0, ancho, alto, matrix, false)
+        } else {
+            bitmap
+        }
+    }
+
+    fun reiniciarFotos(){
+        imgEFrente.tag = 0
+        imgEPerfil.tag = 0
+        imgESerie.tag = 0
+        imgEInven.tag = 0
+        //verificarcheck.isChecked = false;
     }
 
 
@@ -573,71 +837,11 @@ class ActivityOne : AppCompatActivity() {
         fechafolresgedittxt=findViewById(R.id.txtE_FecRes)
         folioresgedittxt=findViewById(R.id.txtE_Folio)
         estatusedittxt=findViewById(R.id.txtE_Estatus)
+        fecharegedittxt=findViewById(R.id.txtE_FecReg)
 
-
-
-    }
-
-
-
-
-
-    //ACTION BARDCODE
-
-
-
-    override fun onActivityResult(
-        requestCode: Int,
-        resultCode: Int,
-        data: Intent?
-    ) {
-        val result =
-            IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
-        if (result != null) {
-            if (result.contents == null) {
-                Toast.makeText(this, "No se escaneo nada", Toast.LENGTH_LONG).show()
-                ocultarItems ()
-            } else {
-
-                    webService(result.contents)
-                    txtE_Inventario.setText(result.contents)
-            }
-        } else {
-            super.onActivityResult(requestCode, resultCode, data)
-        }
-        if(resultCode == Activity.RESULT_OK && requestCode == REQUEST_CAMERA){
-            //Toast.makeText(this, "SI ENTRO A LA IMAGEN", Toast.LENGTH_LONG).show()
-            imgEFrente.clearColorFilter()
-            imgEFrente.clearAnimation()
-            imgEFrente.clearFocus()
-
-            if (bandera==1){
-
-                imgEFrente.setImageURI(foto)
-
-            }else if(bandera==2){
-
-                imgEPerfil.setImageURI(foto)
-
-            } else if(bandera==3){
-
-                imgESerie.setImageURI(foto)
-
-            }else if(bandera==4){
-
-                imgEInven.setImageURI(foto)
-
-            }
-
-
-
-
-        }
+        verificarcheck=findViewById(R.id.chkVer)
 
     }
-
-
-
 
 
     //Funcion mostrar formulario
@@ -779,7 +983,10 @@ class ActivityOne : AppCompatActivity() {
         fechafolresgedittxt.setText("")
         folioresgedittxt.setText("")
         estatusedittxt.setText("")
+        bandera=0
     }
+
+
 
     //Coclo de vida de la Actividad
 
@@ -807,5 +1014,10 @@ class ActivityOne : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
     }
+
+    override fun onClick(v: View?) {
+        TODO("Not yet implemented")
+    }
+
 
 }
