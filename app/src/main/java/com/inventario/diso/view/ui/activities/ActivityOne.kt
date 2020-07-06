@@ -1,13 +1,15 @@
 package com.inventario.diso.view.ui.activities
 
 import android.app.Activity
+import android.app.ProgressDialog
 import android.content.ContentValues
+import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.Matrix
-import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
+import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
@@ -28,12 +30,14 @@ import com.inventario.diso.R
 import kotlinx.android.synthetic.main.activity_one.*
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.BufferedOutputStream
+import java.io.OutputStream
+import java.net.HttpURLConnection
+import java.net.URL
+import java.net.URLEncoder
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
-
-import com.bumptech.glide.annotation.GlideModule;
-import com.bumptech.glide.module.AppGlideModule;
 
 class ActivityOne : AppCompatActivity(), View.OnClickListener {
 
@@ -135,7 +139,6 @@ class ActivityOne : AppCompatActivity(), View.OnClickListener {
             scanner.initiateScan()
             scanner.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE)
             scanner.setBeepEnabled(false)
-
         }
 
 
@@ -179,12 +182,16 @@ class ActivityOne : AppCompatActivity(), View.OnClickListener {
                      verificarcheck.setChecked(false)
                  }else if (imgEPerfil.tag ==0){
                      Toast.makeText(applicationContext,"Seleccione imagen de Perfil", Toast.LENGTH_LONG).show()
+                     verificarcheck.setChecked(false)
                  }else if(imgESerie.tag==0){
                      Toast.makeText(applicationContext,"Seleccione imagen de Serie", Toast.LENGTH_LONG).show()
+                     verificarcheck.setChecked(false)
                  }else if (imgEInven.tag==0){
                      Toast.makeText(applicationContext,"Seleccione imagen de Inventario", Toast.LENGTH_LONG).show()
+                     verificarcheck.setChecked(false)
                  }else{
-                     Toast.makeText(applicationContext,"va a entrar cuandooo se valide todo", Toast.LENGTH_LONG).show()
+                     Toast.makeText(applicationContext,"Puede Guardar Los Datos", Toast.LENGTH_LONG).show()
+                     btnE_Guardar.visibility=View.VISIBLE
                      println("Mandaarrr "+nompisoedittxt.selectedItem.toString())
                  }
 
@@ -202,9 +209,11 @@ class ActivityOne : AppCompatActivity(), View.OnClickListener {
     }
 
     fun webService(idScanner: String){
-
         mostrarItems()
         InicializarComponentes()
+        limpiarCampos()
+
+
         val queue = Volley.newRequestQueue(this)
         val url = "http://192.168.1.63:8886/webservices/ejemplo.php?idbien="+idScanner
         val stringRequest = StringRequest(
@@ -452,7 +461,7 @@ class ActivityOne : AppCompatActivity(), View.OnClickListener {
 
 
             } else {
-                Toast.makeText(applicationContext,"entro en el primero",Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext,"Cargando...",Toast.LENGTH_SHORT).show()
 
                 abreCamara()
             }
@@ -468,14 +477,17 @@ class ActivityOne : AppCompatActivity(), View.OnClickListener {
     //ABRE LA CAMARA TELEFONO
     private fun abreCamara(){
         val value = ContentValues()
+        println("Valor value"+value)
         value.put(MediaStore.Images.Media.TITLE, "NUEVA IMAGEN")
         foto = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,value)
-
-
+        println("la foto es"+foto)
 
         val camaraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        println("la camaraIntent es"+camaraIntent)
         camaraIntent.putExtra(MediaStore.EXTRA_OUTPUT,foto)
         startActivityForResult(camaraIntent,REQUEST_CAMERA)
+
+
     }
 
 
@@ -661,11 +673,6 @@ class ActivityOne : AppCompatActivity(), View.OnClickListener {
 
     }
 
-    fun verificarcheckFun(idbien: String, inventario: String){
-
-
-
-    }
 
 
 
@@ -690,29 +697,14 @@ class ActivityOne : AppCompatActivity(), View.OnClickListener {
                 ocultarItems ()
             } else {
                 reiniciarFotos()
-                    webService(result.contents)
-                    txtE_Inventario.setText(result.contents)
+                webService(result.contents)
+                txtE_Inventario.setText(result.contents)
             }
         } else {
             super.onActivityResult(requestCode, resultCode, data)
         }
         if(resultCode == Activity.RESULT_OK && requestCode == REQUEST_CAMERA){
             //Toast.makeText(this, "SI ENTRO A LA IMAGEN", Toast.LENGTH_LONG).show()
-            imgEFrente.clearColorFilter()
-            imgEFrente.clearAnimation()
-            imgEFrente.clearFocus()
-
-            imgEPerfil.clearColorFilter()
-            imgEPerfil.clearAnimation()
-            imgEPerfil.clearFocus()
-
-            imgESerie.clearColorFilter()
-            imgESerie.clearAnimation()
-            imgESerie.clearFocus()
-
-            imgEInven.clearColorFilter()
-            imgEInven.clearAnimation()
-            imgEInven.clearFocus()
 
 
             if (bandera==1){
@@ -721,6 +713,8 @@ class ActivityOne : AppCompatActivity(), View.OnClickListener {
 
                 Glide.with(this)
                     .load(foto)
+                    .centerCrop()
+                    //.override(500)
                     .into(imgEFrente)
 
 
@@ -730,6 +724,8 @@ class ActivityOne : AppCompatActivity(), View.OnClickListener {
 
                 Glide.with(this)
                     .load(foto)
+                    .centerCrop()
+                   // .override(500)
                     .into(imgEPerfil)
 
             } else if(bandera==3){
@@ -738,6 +734,8 @@ class ActivityOne : AppCompatActivity(), View.OnClickListener {
 
                 Glide.with(this)
                     .load(foto)
+                    .centerCrop()
+                   // .override(100)
                     .into(imgESerie)
 
             }else if(bandera==4){
@@ -746,6 +744,8 @@ class ActivityOne : AppCompatActivity(), View.OnClickListener {
 
                 Glide.with(this)
                     .load(foto)
+                    .centerCrop()
+                   // .override(100)
                     .into(imgEInven)
 
             }
@@ -755,53 +755,24 @@ class ActivityOne : AppCompatActivity(), View.OnClickListener {
 
     }
 
-    fun resizeBitmap(source: Bitmap, maxLength: Int): Bitmap {
-        try {
-            if (source.height >= source.width) {
-                if (source.height <= maxLength) { // if image height already smaller than the required height
-                    return source
-                }
+    fun limpiarImagenes(){
+        imgEFrente.clearColorFilter()
+        imgEFrente.clearAnimation()
+        imgEFrente.clearFocus()
 
-                val aspectRatio = source.width.toDouble() / source.height.toDouble()
-                val targetWidth = (maxLength * aspectRatio).toInt()
-                val result = Bitmap.createScaledBitmap(source, targetWidth, maxLength, false)
-                return result
-            } else {
-                if (source.width <= maxLength) { // if image width already smaller than the required width
-                    return source
-                }
+        imgEPerfil.clearColorFilter()
+        imgEPerfil.clearAnimation()
+        imgEPerfil.clearFocus()
 
-                val aspectRatio = source.height.toDouble() / source.width.toDouble()
-                val targetHeight = (maxLength * aspectRatio).toInt()
+        imgESerie.clearColorFilter()
+        imgESerie.clearAnimation()
+        imgESerie.clearFocus()
 
-                val result = Bitmap.createScaledBitmap(source, maxLength, targetHeight, false)
-                return result
-            }
-        } catch (e: Exception) {
-            return source
-        }
+        imgEInven.clearColorFilter()
+        imgEInven.clearAnimation()
+        imgEInven.clearFocus()
     }
 
-
-
-
-    private fun redimensionarImagen(
-        bitmap: Bitmap,
-        anchoNuevo: Float,
-        altoNuevo: Float
-    ): Bitmap? {
-        val ancho = bitmap.width
-        val alto = bitmap.height
-        return if (ancho > anchoNuevo || alto > altoNuevo) {
-            val escalaAncho = anchoNuevo / ancho
-            val escalaAlto = altoNuevo / alto
-            val matrix = Matrix()
-            matrix.postScale(escalaAncho, escalaAlto)
-            Bitmap.createBitmap(bitmap, 0, 0, ancho, alto, matrix, false)
-        } else {
-            bitmap
-        }
-    }
 
     fun reiniciarFotos(){
         imgEFrente.tag = 0
@@ -866,7 +837,6 @@ class ActivityOne : AppCompatActivity(), View.OnClickListener {
         txtE_FecReg.visibility=View.VISIBLE
         txtE_UsReg.visibility=View.VISIBLE
         txtE_In.visibility=View.VISIBLE
-        btnE_Guardar.visibility=View.VISIBLE
         btnE_Frente.visibility=View.VISIBLE
         btnE_Perfil.visibility=View.VISIBLE
         btnE_Inven.visibility=View.VISIBLE
@@ -983,6 +953,8 @@ class ActivityOne : AppCompatActivity(), View.OnClickListener {
         fechafolresgedittxt.setText("")
         folioresgedittxt.setText("")
         estatusedittxt.setText("")
+        verificarcheck.setChecked(false)
+        btnE_Guardar.visibility=View.GONE
         bandera=0
     }
 
